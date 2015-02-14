@@ -1,0 +1,42 @@
+PODS:
+  - AFNetworking (2.4.1):
+    - AFNetworking/NSURLConnection (= 2.4.1)
+    - AFNetworking/NSURLSession (= 2.4.1)
+    - AFNetworking/Reachability (= 2.4.1)
+    - AFNetworking/Security (= 2.4.1)
+    - AFNetworking/Serialization (= 2.4.1)
+    - AFNetworking/UIKit (= 2.4.1)
+  - AFNetworking/NSURLConnection (2.4.1):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/NSURLSession (2.4.1):
+    - AFNetworking/Reachability
+    - AFNetworking/Security
+    - AFNetworking/Serialization
+  - AFNetworking/Reachability (2.4.1)
+  - AFNetworking/Security (2.4.1)
+  - AFNetworking/Serialization (2.4.1)
+  - AFNetworking/UIKit (2.4.1):
+    - AFNetworking/NSURLConnection
+    - AFNetworking/NSURLSession
+  - BDBOAuth1Manager (1.4.1):
+    - AFNetworking/NSURLConnection (~> 2.4.0)
+    - AFNetworking/NSURLSession (~> 2.4.0)
+  - SVPullToRefresh (0.4.1)
+  - TGPControls (0.0.1)
+
+DEPENDENCIES:
+  - AFNetworking
+  - BDBOAuth1Manager
+  - BDBOAuth1Manager (~> 1.4.0)
+  - SVPullToRefresh
+  - TGPControls (~> 0.0)
+
+SPEC CHECKSUMS:
+  AFNetworking: 0aabc6fae66d6e5d039eeb21c315843c7aae51ab
+  BDBOAuth1Manager: 0625ba20bd7d36461bbf6dc3d29276b5932b7409
+  SVPullToRefresh: d5161ebc833a38b465364412e5e307ca80bbb190
+  TGPControls: 17988d905d42806735e48a637e5b5a227b45b8e7
+
+COCOAPODS: 0.35.0
