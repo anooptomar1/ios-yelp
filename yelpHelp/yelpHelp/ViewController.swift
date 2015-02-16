@@ -34,6 +34,17 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         searchYelpContent(businessText, param: paramDictionary);
         
     }
+//    func searchBarTextDidEndEditing(searchBar: UISearchBar) {
+//        searchBar.resignFirstResponder();
+//    }
+    
+//    @IBAction func tapAction(sender: AnyObject) {
+//        searchBar.resignFirstResponder();
+//    }
+    
+    func scrollViewDidScroll(scrollView: UIScrollView) {
+        searchBar.resignFirstResponder();
+    }
     
     func searchYelpContent(searchTerm: String, param: NSDictionary){
         client.searchWithTerm(searchTerm, limit: pageLimit, offset: pageNumber,param: param, success: {(operation: AFHTTPRequestOperation!, response: AnyObject!) -> Void in
@@ -74,9 +85,6 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         businesses = [Business]();
     }
     
-    func searchBarCancelButtonClicked(searchBar: UISearchBar) {
-        searchBar.resignFirstResponder();
-    }
     
     override func viewDidLoad() {
         super.viewDidLoad();
@@ -86,17 +94,25 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         searchBar.sizeToFit();
         searchBar.delegate = self;
         
-        searchBar.setShowsCancelButton(true, animated: true);
-        
         self.tableView.dataSource = self;
         self.tableView.delegate = self;
+        self.tableView.rowHeight = UITableViewAutomaticDimension;
+        //self.title = "Yelp";
         
-        self.tableView.rowHeight = 89;
-        //self.tableView.rowHeight = UITableViewAutomaticDimension;
-        self.title = "Yelp";
+        // filter button
+        var filterButton = UIBarButtonItem(title: "Filter", style: UIBarButtonItemStyle.Plain, target: self, action: "onFilterButton");
+        filterButton.tintColor = UIColor.whiteColor();
+        filterButton.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Chalkduster", size: 12)!], forState: UIControlState.Normal)
+        self.navigationItem.leftBarButtonItem = filterButton;
         
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Filter", style: UIBarButtonItemStyle.Bordered, target: self, action: "onFilterButton");
-        self.navigationController?.navigationBar.backgroundColor = UIColor.orangeColor();
+        // map view button
+        var mapButton = UIBarButtonItem(title: "Map", style: UIBarButtonItemStyle.Plain, target: self, action: "onMapButton");
+        mapButton.tintColor = UIColor.whiteColor();
+        mapButton.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Chalkduster", size: 12)!], forState: UIControlState.Normal);
+        self.navigationItem.rightBarButtonItem = mapButton;
+        
+        // navbar color
+        self.navigationController?.navigationBar.barTintColor = UIColor.redColor();
         
         tableView.addInfiniteScrollingWithActionHandler(insertMoreBusinesses);
         
@@ -106,7 +122,13 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
         clearTableView();
         paramDictionary = filters;
         searchYelpContent(businessText, param: filters);
-        //println("\(filters)");
+    }
+    
+    func onMapButton(){
+        var mvc = self.storyboard?.instantiateViewControllerWithIdentifier("mapVC") as MapViewController;
+        mvc.businesses = self.businesses;
+        var navC = UINavigationController(rootViewController: mvc);
+        presentViewController(navC, animated: true, completion: nil);
     }
     
     func onFilterButton(){
@@ -123,11 +145,24 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
 
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated);
-        self.tableView.rowHeight = 89;
-        //self.tableView.rowHeight = UITableViewAutomaticDimension;
+        self.tableView.rowHeight = UITableViewAutomaticDimension;
     }
     
+    func tableView(tableView: UITableView, estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+        return UITableViewAutomaticDimension;
+    }
     
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        var dvc = self.storyboard?.instantiateViewControllerWithIdentifier("detailsVC") as DetailsViewController;
+        dvc.client = self.client;
+        if(filteredBusiness.count > 0){
+            dvc.business = self.filteredBusiness[indexPath.row];
+        }else{
+            dvc.business = self.businesses[indexPath.row];
+        }
+        var nvc = UINavigationController(rootViewController: dvc);
+        presentViewController(nvc, animated: true, completion: nil);
+    }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
             if (businesses.count>0){

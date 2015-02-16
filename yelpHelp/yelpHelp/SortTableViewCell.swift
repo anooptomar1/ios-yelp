@@ -9,35 +9,33 @@
 import UIKit
 
 protocol SortTableViewCellDelegate : class{
-    func didSortingChanged(sortTableViewCell:SortTableViewCell, value: Int);
+    func didSortingChanged(sortTableViewCell:SortTableViewCell, value: Bool);
 }
 
 class SortTableViewCell: UITableViewCell {
 
     weak var delegate: SortTableViewCellDelegate?;
     
-    var sortValue = 0;
+    var on: Bool!;
     
-    @IBOutlet weak var sortControl: UISegmentedControl!
+    @IBOutlet weak var sortSwitch: UISwitch!
+    @IBOutlet weak var sortLabel: UILabel!
     
     override func awakeFromNib() {
         super.awakeFromNib()
         self.selectionStyle = UITableViewCellSelectionStyle.None;
-        // Initialization code
     }
 
     override func setSelected(selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
     }
     
-    func setSortValue(value: Int){
-        self.sortValue = value;
-        sortControl.selectedSegmentIndex = value;
+    func setOn(on: Bool, animated: Bool){
+        self.on  = on;
+        sortSwitch.setOn(on, animated: animated);
     }
 
-    @IBAction func didSortSelected(sender: AnyObject) {
-        self.delegate?.didSortingChanged(self, value: sortControl.selectedSegmentIndex);
+    @IBAction func sortAction(sender: AnyObject) {
+        self.delegate?.didSortingChanged(self, value: sortSwitch.on);
     }
 }

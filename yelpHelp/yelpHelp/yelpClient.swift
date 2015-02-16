@@ -43,4 +43,8 @@ class YelpClient: BDBOAuth1RequestOperationManager {
         return self.GET("search", parameters: allParams, success: success, failure: failure)
     }
     
+    func getBusinessById(businessId: String, success:(AFHTTPRequestOperation!, AnyObject!) -> Void, faliure: (AFHTTPRequestOperation!, NSError!) -> Void) -> AFHTTPRequestOperation{
+        return self.GET("business/\(businessId)", parameters: nil, success: success, failure: faliure)
+    }
+    
 }

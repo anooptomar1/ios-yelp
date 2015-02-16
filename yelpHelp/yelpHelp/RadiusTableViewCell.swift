@@ -9,35 +9,33 @@
 import UIKit
 
 protocol RadiusTableViewCellDelegate : class{
-    func didRadiusChanged(radiusTableViewCell: RadiusTableViewCell, value: Int);
+    func didRadiusChanged(radiusTableViewCell: RadiusTableViewCell, value: Bool);
 }
 
 class RadiusTableViewCell: UITableViewCell {
 
+    @IBOutlet weak var radiusLabel: UILabel!
+    @IBOutlet weak var radiusSwitch: UISwitch!
+    
     weak var delegate: RadiusTableViewCellDelegate?;
     
-    var radiusValues = [0,480,1600,8000,32000];
-    var radiusValue = 0;
+    var on: Bool!;
     
-    @IBOutlet weak var radiusControl: UISegmentedControl!
     override func awakeFromNib() {
         super.awakeFromNib()
         self.selectionStyle = UITableViewCellSelectionStyle.None;
-        // Initialization code
     }
 
     override func setSelected(selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
-
-        // Configure the view for the selected state
     }
 
-    func setRadius(value: Int){
-        radiusControl.selectedSegmentIndex = value;
-        radiusValue = radiusValues[value];
+    func setOn(on: Bool, animated: Bool){
+        self.on = on;
+        self.radiusSwitch.setOn(on, animated: animated);
     }
     
-    @IBAction func radiusAction(sender: AnyObject) {
-        self.delegate?.didRadiusChanged(self, value: radiusValues[radiusControl.selectedSegmentIndex]);
+    @IBAction func radiusChanged(sender: AnyObject) {
+        self.delegate?.didRadiusChanged(self, value: self.radiusSwitch.on);
     }
 }

@@ -8,6 +8,8 @@
 
 
 class Business: NSObject {
+    
+    var Id: String!;
     var imageUrl: String!;
     var name: String!;
     var ratingImageUrl: String!;
@@ -15,8 +17,14 @@ class Business: NSObject {
     var address: String!;
     var categories: String!;
     var distance: Float!;
+    var latitude: Double!;
+    var longitude: Double!;
     
     func convertDictionaryToBusiness(param: NSDictionary!) -> Business{
+        
+        // get business id
+        self.Id = param["id"] as NSString;
+        
         if(param["categories"] != nil){
             var category: NSArray = param["categories"] as NSArray;
             var categoryNames = NSMutableArray();
@@ -43,6 +51,11 @@ class Business: NSObject {
         
         if(param.valueForKeyPath("location.neighborhoods") != nil){
            neighborhood = (param.valueForKeyPath("location.neighborhoods") as NSArray).count > 0 ?(param.valueForKeyPath("location.neighborhoods") as NSArray)[0] as NSString : "";
+        }
+        
+        if(param.valueForKeyPath("location.coordinate.latitude") != nil){
+            latitude = param.valueForKeyPath("location.coordinate.latitude") as Double;
+            longitude = param.valueForKeyPath("location.coordinate.longitude") as Double;
         }
         
         self.address = "\(street), \(neighborhood)";

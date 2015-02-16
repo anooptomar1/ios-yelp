@@ -14,22 +14,35 @@ protocol FiltersViewControllerDelegate : class{
 
 class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, FilterTableViewCellDelegate, SortTableViewCellDelegate, RadiusTableViewCellDelegate, DealsTableViewCellDelegate {
 
+    enum CellType{
+        case sortCell, radiusCell
+    }
+    
     @IBOutlet weak var tableView: UITableView!
     
     weak var delegate: FiltersViewControllerDelegate?;
     
+    // category properties
+    var categories: NSArray!;
     var selectedCategories = NSMutableSet();
     
-    var sortSelection = 0;
-    var radiusSelection = 0;
+    // radius properties
+    var radiusCategories: NSArray!;
+    var selectedRadius = NSMutableSet();
     
+    // sort properties
+    var sortCategories: NSArray!;
+    var selectedSort = NSMutableSet();
+    
+    // deals properties
     var dealsSelected = false;
 
-    var categories: NSArray!;
     
     func filters() -> NSDictionary{
         var results = NSMutableDictionary();
         var codes = NSMutableArray();
+        var sortValue = "0";
+        var radiusSelection = "0";
         
         if(selectedCategories.count > 0){
             for cat in selectedCategories{
@@ -37,9 +50,18 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
             }
             
             results.setObject(codes.componentsJoinedByString(","), forKey: "category_filter")
-           // results.setObject(codes.componentsJoinedByString(","), forKey: "sort")
         }
-        results.setObject(sortSelection, forKey: "sort");
+        if(selectedSort.count > 0){
+            for cat in selectedSort{
+                sortValue = (cat as NSArray)[1]["value"] as NSString;
+            }
+        }
+        if(selectedRadius.count > 0){
+            for cat in selectedRadius{
+                radiusSelection = (cat as NSArray)[1]["value"] as NSString;
+            }
+        }
+        results.setObject(sortValue, forKey: "sort");
         results.setObject(radiusSelection, forKey: "radius_filter");
         results.setObject(dealsSelected, forKey: "deals_filter");
         return results;
@@ -47,13 +69,41 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.Bordered, target: self, action: "onCancelButton");
         
-        self.navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Apply", style: UIBarButtonItemStyle.Bordered, target: self, action: "onApplyButton");
-
-        self.navigationController?.navigationBar.backgroundColor = UIColor.orangeColor();
-
+        // add buttons to navigation bar
+        var cancelButton = UIBarButtonItem(title: "Cancel", style: UIBarButtonItemStyle.Bordered, target: self, action: "onCancelButton");
+        cancelButton.tintColor = UIColor.whiteColor();
+        cancelButton.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Chalkduster", size: 12)!], forState: UIControlState.Normal)
+        self.navigationItem.leftBarButtonItem = cancelButton;
         
+        
+        // apply button
+        var applyButton = UIBarButtonItem(title: "Search", style: UIBarButtonItemStyle.Bordered, target: self, action: "onApplyButton");
+        applyButton.tintColor = UIColor.whiteColor();
+        applyButton.setTitleTextAttributes([NSFontAttributeName: UIFont(name: "Chalkduster", size: 12)!], forState: UIControlState.Normal)
+        self.navigationItem.rightBarButtonItem = applyButton
+
+        // set color to navigation bar
+        self.navigationController?.navigationBar.barTintColor = UIColor.redColor();
+        var titleLabel = UILabel();
+        titleLabel.text = "Filters";
+        titleLabel.textColor = UIColor.whiteColor();
+        titleLabel.sizeToFit();
+        titleLabel.backgroundColor = UIColor.clearColor();
+        titleLabel.font = UIFont(name: "Chalkduster", size: 20);
+        self.navigationItem.titleView = titleLabel;
+        
+        // initialize category arrays
+        initializeCategories();
+        
+        // add tableview delegate and data source
+        self.tableView.delegate = self;
+        self.tableView.dataSource = self;
+    }
+
+    func initializeCategories(){
+        
+        // type categories
         self.categories = [
             [["name": "Afghan"], ["code": "afghani"]],
             [["name": "African"], ["code": "african"]],
@@ -70,18 +120,26 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
             [["name": "Caribbean"], ["code": "caribbean"]]
         ];
         
+        // sort categories
+        self.sortCategories = [
+            [["name": "Best Match"], ["value": "0"]],
+            [["name": "Distance"], ["value": "1"]],
+            [["name": "Highest Rated"], ["value": "2"]],
+        ];
+        
+        // radius categories
+        self.radiusCategories = [
+            [["name" : "Best Match"], ["value" : "0"]],
+            [["name" : "0.3 miles"], ["value" : "480"]],
+            [["name" : "1 mile"], ["value" : "1600"]],
+            [["name" : "5 miles"], ["value" : "8000"]],
+            [["name" : "20 miles"], ["value" : "32000"]]
+        ];
 
-        self.tableView.delegate = self;
-        self.tableView.dataSource = self;
-    }
-
-    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 4;
     }
     
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+        return 4;
     }
     
     func onCancelButton(){
@@ -96,34 +154,54 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if(section == 0){
             return self.categories.count;
+        }else if(section == 1){
+            return self.sortCategories.count;
+        }else if(section == 2){
+            return self.radiusCategories.count;
         }
         return 1;
     }
     
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         if(indexPath.section == 0){
+            
+            // load filter categories
             let cell = tableView.dequeueReusableCellWithIdentifier("FilterCell") as FilterTableViewCell;
             cell.setOn(self.selectedCategories.containsObject(self.categories[indexPath.row]), animated: true);
             cell.categoryLabel.text = (self.categories[indexPath.row] as NSArray)[0]["name"] as NSString
             cell.delegate = self;
-            
             return cell;
+            
         }else if(indexPath.section == 1){
+            
+            // load sort categories
             let cell = tableView.dequeueReusableCellWithIdentifier("SortCell") as SortTableViewCell;
+            cell.setOn(self.selectedSort.containsObject(self.sortCategories[indexPath.row]), animated: true);
+            cell.sortLabel.text = (self.sortCategories[indexPath.row] as NSArray)[0]["name"] as NSString;
             cell.delegate = self;
-            
             return cell;
+            
         }else if(indexPath.section == 2){
-            let cell = tableView.dequeueReusableCellWithIdentifier("RadiusCell") as RadiusTableViewCell;
-            cell.delegate = self;
             
+            // load radius categories
+            let cell = tableView.dequeueReusableCellWithIdentifier("RadiusCell") as RadiusTableViewCell;
+            cell.setOn(self.selectedRadius.containsObject(self.radiusCategories[indexPath.row]), animated: true);
+            cell.radiusLabel.text = (self.radiusCategories[indexPath.row] as NSArray)[0]["name"] as NSString;
+            cell.delegate = self;
             return cell;
+            
         }
+        
+        // load deals
         let cell = tableView.dequeueReusableCellWithIdentifier("DealsCell") as DealsTableViewCell;
         cell.delegate = self;
-        
         return cell;
         
+    }
+
+    
+    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
+        //println(indexPath);
     }
     
     func tableView(tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -131,10 +209,13 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
             return "Categories:";
         }else if(section == 1){
             return "Sort By:";
+        }else if(section == 2){
+            return "Radius:";
         }
         
-        return "Radius:";
+        return "Deals:";
     }
+    
     
     func didUpdateValue(filterTableViewCell: FilterTableViewCell, value: Bool) {
         var indexPath: NSIndexPath = self.tableView.indexPathForCell(filterTableViewCell)!;
@@ -146,28 +227,48 @@ class FiltersViewController: UIViewController, UITableViewDelegate, UITableViewD
         }
     }
     
-    func didSortingChanged(sortTableViewCell: SortTableViewCell, value: Int) {
-        self.sortSelection = value;
-        //println(sortSelection);
+    func didSortingChanged(sortTableViewCell: SortTableViewCell, value: Bool) {
+        var indexPath: NSIndexPath = self.tableView.indexPathForCell(sortTableViewCell)!;
+        if(value){
+            deselectAllOthers(indexPath, cellType:CellType.sortCell);
+            self.selectedSort.removeAllObjects();
+            self.selectedSort.addObject(self.sortCategories[indexPath.row]);
+        }else{
+            self.selectedSort.removeObject(self.sortCategories[indexPath.row]);
+        }
+        //println(selectedSort);
     }
     
-    func didRadiusChanged(radiusTableViewCell: RadiusTableViewCell, value: Int) {
-        self.radiusSelection = value;
-        //println(radiusSelection);
+    func didRadiusChanged(radiusTableViewCell: RadiusTableViewCell, value: Bool) {
+        var indexPath: NSIndexPath = self.tableView.indexPathForCell(radiusTableViewCell)!;
+        if(value){
+            deselectAllOthers(indexPath, cellType: CellType.radiusCell);
+            self.selectedRadius.removeAllObjects();
+            self.selectedRadius.addObject(self.radiusCategories[indexPath.row]);
+        }
+        else{
+            self.selectedRadius.removeObject(self.radiusCategories[indexPath.row]);
+        }
+       // println(self.selectedRadius);
     }
     
     func didDealsChanged(dealsTableViewCell: DealsTableViewCell, value: Bool) {
         self.dealsSelected = value;
     }
     
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+    func deselectAllOthers(indexPath: NSIndexPath, cellType: CellType){
+        for i in 0..<tableView.numberOfRowsInSection(indexPath.section){
+            if(i != indexPath.row){
+                switch cellType{
+                case CellType.sortCell:
+                    var otherCell = tableView.cellForRowAtIndexPath(NSIndexPath(forRow: i, inSection: indexPath.section)) as SortTableViewCell;
+                    otherCell.setOn(false, animated: false);
+                case CellType.radiusCell:
+                    var otherCell = tableView.cellForRowAtIndexPath(NSIndexPath(forRow: i, inSection: indexPath.section)) as RadiusTableViewCell;
+                    otherCell.setOn(false, animated: false);
+                }
+            }
+        }
     }
-    */
-
+  
 }
